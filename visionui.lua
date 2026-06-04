@@ -5328,13 +5328,6 @@ local Library do
                     --Items["Gradient"].Instance.Enabled = false
                 end
 
-                -- Update keybind visibility in keybind list
-                if Toggle.Keybind and Toggle.Keybind.KeyListItem and Toggle.Keybind.KeyListItem.SetVisibility then
-                    pcall(function()
-                        Toggle.Keybind.KeyListItem:SetVisibility(Toggle.Value)
-                    end)
-                end
-
                 if Toggle.Callback then 
                     Library:SafeCall(Toggle.Callback, Toggle.Value)
                 end
@@ -5872,12 +5865,6 @@ local Library do
                     end
                 end
                 
-                -- Store keybind reference in Toggle
-                Toggle.Keybind = {
-                    KeyListItem = KeyListItem,
-                    _Keybind = Keybind
-                }
-                
                 return {
                     Set = function(NewKey)
                         Keybind.Key = NewKey
@@ -5889,8 +5876,7 @@ local Library do
                     SetMode = function(Mode)
                         Keybind.Mode = Mode or "Toggle"
                     end,
-                    KeyListItem = KeyListItem,
-                    _Keybind = Keybind -- Store reference for Toggle
+                    KeyListItem = KeyListItem
                 }
             end
 
