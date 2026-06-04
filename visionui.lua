@@ -2118,7 +2118,7 @@ local Library do
                     BorderSizePixel = 0,
                     TextSize = 14,
                     BackgroundColor3 = FromRGB(255, 255, 255),
-                    Visible = (Key and Key ~= "" and Key ~= "None"),
+                    Visible = false, -- Start hidden by default
                     ZIndex = 4
                 })
                 
@@ -2166,9 +2166,9 @@ local Library do
                     
                     if Key and Key ~= "" and Key ~= "None" and not Key:find("table:") then
                         NewKeyText.Instance.Text = Name .. " [" .. Key .. "]"
-                        NewKey.Instance.Visible = true
+                        -- Don't automatically show - let SetVisibility control this
                     else
-                        NewKey.Instance.Visible = false
+                        NewKeyText.Instance.Text = ""
                     end
                     pcall(function() KeybindList:UpdateSize() end)
                 end
