@@ -5720,10 +5720,6 @@ local Library do
                 if Library.KeyList and Library.KeyList.Add then 
                     pcall(function()
                         KeyListItem = Library.KeyList:Add(Keybind.Name, "None")
-                        -- Hide keybind initially (will show when toggle is enabled)
-                        if KeyListItem and KeyListItem.SetVisibility then
-                            KeyListItem:SetVisibility(false)
-                        end
                     end)
                 else
                     -- Store keybind for later registration when KeyList is available
@@ -5733,7 +5729,7 @@ local Library do
                     table.insert(Library.PendingKeybinds, Keybind)
                 end
                 
-                -- Store KeyListItem in Toggle for visibility management
+                -- Store KeyListItem in Toggle for visibility management BEFORE UpdateKeybind
                 Toggle.KeybindItem = KeyListItem
                 
                 local function UpdateKeybind()
@@ -5766,6 +5762,10 @@ local Library do
                         pcall(function()
                             KeyListItem:Set(Keybind.Name, keyText)
                             KeyListItem:SetStatus(Keybind.Toggled)
+                            -- Ensure visibility matches toggle state
+                            if KeyListItem.SetVisibility and Toggle then
+                                KeyListItem:SetVisibility(Toggle.Value == true)
+                            end
                         end)
                     end
                 end
