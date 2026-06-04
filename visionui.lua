@@ -5875,8 +5875,7 @@ local Library do
                     end,
                     SetMode = function(Mode)
                         Keybind.Mode = Mode or "Toggle"
-                    end,
-                    KeyListItem = KeyListItem
+                    end
                 }
             end
 
