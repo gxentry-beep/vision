@@ -2271,19 +2271,15 @@ local Library do
                                 keybind.KeyListItem = item
                                 
                                 -- IMPORTANT: Also store in Toggle for visibility management
-                                -- keybind should have a reference to its parent toggle
-                                if keybind.Toggle and keybind.Toggle.KeybindItem == nil then
+                                if keybind.Toggle then
                                     keybind.Toggle.KeybindItem = item
                                     
-                                    -- Sync initial visibility with toggle state
-                                    if keybind.Toggle.Value ~= nil then
-                                        item:SetVisibility(keybind.Toggle.Value == true)
+                                    -- Sync initial visibility with current toggle state
+                                    if keybind.Toggle.Value == true then
+                                        item:SetVisibility(true)
                                     else
                                         item:SetVisibility(false)
                                     end
-                                else
-                                    -- No toggle reference, hide by default
-                                    item:SetVisibility(false)
                                 end
                             end
                         end)
