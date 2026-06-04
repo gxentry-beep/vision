@@ -2266,24 +2266,32 @@ local Library do
                             
                             -- Add keybind to list
                             local item = KeybindList:Add(keybind.Name, keyText)
-                            print("[DEBUG] Added keybind:", keybind.Name, "Key:", keyText, "Item:", item ~= nil)
+                            print("[DEBUG] Added keybind:", keybind.Name, "Key:", keyText, "Item:", item ~= nil, "Type:", type(item))
                             if item then
-                                item:SetStatus(keybind.Toggled or false)
                                 -- Store reference for future updates
                                 keybind.KeyListItem = item
                                 
                                 -- IMPORTANT: Also store in Toggle for visibility management
                                 if keybind.Toggle then
                                     keybind.Toggle.KeybindItem = item
-                                    print("[DEBUG]", keybind.Name, "Toggle.Value:", keybind.Toggle.Value)
+                                    print("[DEBUG]", keybind.Name, "Toggle.Value:", keybind.Toggle.Value, "SetVisibility exists:", item.SetVisibility ~= nil)
+                                    
+                                    -- Set status first
+                                    if item.SetStatus then
+                                        pcall(function() item:SetStatus(keybind.Toggled or false) end)
+                                    end
                                     
                                     -- Sync initial visibility with current toggle state
-                                    if keybind.Toggle.Value == true then
-                                        print("[DEBUG] Showing keybind:", keybind.Name)
-                                        item:SetVisibility(true)
-                                    else
-                                        print("[DEBUG] Hiding keybind:", keybind.Name)
-                                        item:SetVisibility(false)
+                                    if item.SetVisibility then
+                                        if keybind.Toggle.Value == true then
+                                            print("[DEBUG] Showing keybind:", keybind.Name)
+                                            local ok, visErr = pcall(function() item:SetVisibility(true) end)
+                                            if not ok then print("[DEBUG] SetVisibility error:", visErr) end
+                                        else
+                                            print("[DEBUG] Hiding keybind:", keybind.Name)
+                                            local ok, visErr = pcall(function() item:SetVisibility(false) end)
+                                            if not ok then print("[DEBUG] SetVisibility error:", visErr) end
+                                        end
                                     end
                                 else
                                     print("[DEBUG] No Toggle reference for:", keybind.Name)
