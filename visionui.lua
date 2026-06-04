@@ -5844,6 +5844,13 @@ local Library do
                 -- Initialize
                 UpdateKeybind()
                 
+                -- Sync initial visibility with toggle state
+                if KeyListItem and KeyListItem.SetVisibility and Toggle.Value ~= nil then
+                    pcall(function()
+                        KeyListItem:SetVisibility(Toggle.Value == true)
+                    end)
+                end
+                
                 -- Add to section elements for cleanup
                 TableInsert(Toggle.Section.Elements, Keybind)
                 
