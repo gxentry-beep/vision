@@ -5762,10 +5762,6 @@ local Library do
                         pcall(function()
                             KeyListItem:Set(Keybind.Name, keyText)
                             KeyListItem:SetStatus(Keybind.Toggled)
-                            -- Ensure visibility matches toggle state
-                            if KeyListItem.SetVisibility and Toggle then
-                                KeyListItem:SetVisibility(Toggle.Value == true)
-                            end
                         end)
                     end
                 end
