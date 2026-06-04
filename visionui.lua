@@ -2263,13 +2263,27 @@ local Library do
                                 end
                             end
                             
-                            -- Only add if we have a valid key
-                            if keyText ~= "None" then
-                                local item = KeybindList:Add(keybind.Name, keyText)
-                                if item then
-                                    item:SetStatus(keybind.Toggled or false)
-                                    -- Store reference for future updates
-                                    keybind.KeyListItem = item
+                            -- Add keybind to list
+                            local item = KeybindList:Add(keybind.Name, keyText)
+                            if item then
+                                item:SetStatus(keybind.Toggled or false)
+                                -- Store reference for future updates
+                                keybind.KeyListItem = item
+                                
+                                -- IMPORTANT: Also store in Toggle for visibility management
+                                -- keybind should have a reference to its parent toggle
+                                if keybind.Toggle and keybind.Toggle.KeybindItem == nil then
+                                    keybind.Toggle.KeybindItem = item
+                                    
+                                    -- Sync initial visibility with toggle state
+                                    if keybind.Toggle.Value ~= nil then
+                                        item:SetVisibility(keybind.Toggle.Value == true)
+                                    else
+                                        item:SetVisibility(false)
+                                    end
+                                else
+                                    -- No toggle reference, hide by default
+                                    item:SetVisibility(false)
                                 end
                             end
                         end)
@@ -5726,6 +5740,8 @@ local Library do
                     if not Library.PendingKeybinds then
                         Library.PendingKeybinds = {}
                     end
+                    -- Store reference to parent toggle so we can sync visibility later
+                    Keybind.Toggle = Toggle
                     table.insert(Library.PendingKeybinds, Keybind)
                 end
                 
