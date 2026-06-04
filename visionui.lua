@@ -5321,11 +5321,25 @@ local Library do
                     Items["CheckImage"]:Tween(nil, {ImageTransparency = 0, Size = UDim2New(0, 10, 0, 9)})
 
                     --Items["Gradient"].Instance.Enabled = true 
+                    
+                    -- Show keybind in list if it exists
+                    if Toggle.KeybindItem and Toggle.KeybindItem.SetVisibility then
+                        pcall(function()
+                            Toggle.KeybindItem:SetVisibility(true)
+                        end)
+                    end
                 else
                     Items["Accent"]:Tween(TweenInfo.new(Library.Tween.Time + 0.05, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 1, Size = UDim2New(0, 0, 0, 0)})
                     Items["CheckImage"]:Tween(nil, {ImageTransparency = 1, Size = UDim2New(0, 0, 0, 0)})
 
                     --Items["Gradient"].Instance.Enabled = false
+                    
+                    -- Hide keybind in list if it exists
+                    if Toggle.KeybindItem and Toggle.KeybindItem.SetVisibility then
+                        pcall(function()
+                            Toggle.KeybindItem:SetVisibility(false)
+                        end)
+                    end
                 end
 
                 if Toggle.Callback then 
@@ -5706,6 +5720,10 @@ local Library do
                 if Library.KeyList and Library.KeyList.Add then 
                     pcall(function()
                         KeyListItem = Library.KeyList:Add(Keybind.Name, "None")
+                        -- Hide keybind initially (will show when toggle is enabled)
+                        if KeyListItem and KeyListItem.SetVisibility then
+                            KeyListItem:SetVisibility(false)
+                        end
                     end)
                 else
                     -- Store keybind for later registration when KeyList is available
@@ -5714,6 +5732,9 @@ local Library do
                     end
                     table.insert(Library.PendingKeybinds, Keybind)
                 end
+                
+                -- Store KeyListItem in Toggle for visibility management
+                Toggle.KeybindItem = KeyListItem
                 
                 local function UpdateKeybind()
                     local keyText = "None"
