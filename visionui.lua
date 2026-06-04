@@ -2162,7 +2162,7 @@ local Library do
 
                 function NewKey:Set(Name, Key)
                     if not NewKeyText or not NewKeyText.Instance then return end
-                    if not NewKey or not NewKey.Instance then return end
+                    if not self or not self.Instance then return end
                     
                     if Key and Key ~= "" and Key ~= "None" and not Key:find("table:") then
                         NewKeyText.Instance.Text = Name .. " [" .. Key .. "]"
@@ -2200,8 +2200,8 @@ local Library do
                 end
 
                 function NewKey:SetVisibility(Bool)
-                    if NewKey and NewKey.Instance then
-                        NewKey.Instance.Visible = Bool
+                    if self and self.Instance then
+                        self.Instance.Visible = Bool
                         pcall(function() KeybindList:UpdateSize() end)
                     end
                 end
