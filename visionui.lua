@@ -2244,9 +2244,10 @@ local Library do
 
             -- Register any pending keybinds that were created before KeybindList was available
             if Library.PendingKeybinds then
+                print("[DEBUG] Registering", #Library.PendingKeybinds, "pending keybinds")
                 for _, keybind in pairs(Library.PendingKeybinds) do
                     if keybind and keybind.Name then
-                        pcall(function()
+                        local success, err = pcall(function()
                             local keyText = "None"
                             if keybind.Key and keybind.Key ~= Enum.KeyCode.Unknown then
                                 -- Handle both string and enum key values
@@ -2265,6 +2266,7 @@ local Library do
                             
                             -- Add keybind to list
                             local item = KeybindList:Add(keybind.Name, keyText)
+                            print("[DEBUG] Added keybind:", keybind.Name, "Key:", keyText, "Item:", item ~= nil)
                             if item then
                                 item:SetStatus(keybind.Toggled or false)
                                 -- Store reference for future updates
@@ -2273,19 +2275,29 @@ local Library do
                                 -- IMPORTANT: Also store in Toggle for visibility management
                                 if keybind.Toggle then
                                     keybind.Toggle.KeybindItem = item
+                                    print("[DEBUG]", keybind.Name, "Toggle.Value:", keybind.Toggle.Value)
                                     
                                     -- Sync initial visibility with current toggle state
                                     if keybind.Toggle.Value == true then
+                                        print("[DEBUG] Showing keybind:", keybind.Name)
                                         item:SetVisibility(true)
                                     else
+                                        print("[DEBUG] Hiding keybind:", keybind.Name)
                                         item:SetVisibility(false)
                                     end
+                                else
+                                    print("[DEBUG] No Toggle reference for:", keybind.Name)
                                 end
                             end
                         end)
+                        if not success then
+                            print("[DEBUG] Error registering keybind:", err)
+                        end
                     end
                 end
                 Library.PendingKeybinds = nil -- Clear pending list
+            else
+                print("[DEBUG] No pending keybinds to register")
             end
 
             return KeybindList
@@ -5334,9 +5346,12 @@ local Library do
                     
                     -- Show keybind in list if it exists
                     if Toggle.KeybindItem and Toggle.KeybindItem.SetVisibility then
+                        print("[DEBUG] Toggle:Set TRUE - Showing keybind for:", Toggle.Name)
                         pcall(function()
                             Toggle.KeybindItem:SetVisibility(true)
                         end)
+                    else
+                        print("[DEBUG] Toggle:Set TRUE - No KeybindItem for:", Toggle.Name, "KeybindItem:", Toggle.KeybindItem)
                     end
                 else
                     Items["Accent"]:Tween(TweenInfo.new(Library.Tween.Time + 0.05, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 1, Size = UDim2New(0, 0, 0, 0)})
@@ -5346,6 +5361,7 @@ local Library do
                     
                     -- Hide keybind in list if it exists
                     if Toggle.KeybindItem and Toggle.KeybindItem.SetVisibility then
+                        print("[DEBUG] Toggle:Set FALSE - Hiding keybind for:", Toggle.Name)
                         pcall(function()
                             Toggle.KeybindItem:SetVisibility(false)
                         end)
