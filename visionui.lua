@@ -2520,7 +2520,21 @@ local Library do
             return ModeratorList
         end
 
-        Library.Notification = function(self, Data)
+        Library.Notification = function(self, Data, Duration, Color)
+            -- Accept positional form: Notification("text", duration, color)
+            if type(Data) ~= "table" then
+                Data = {
+                    Title = "Notification",
+                    Description = tostring(Data),
+                    Duration = tonumber(Duration) or 3,
+                    Color = Color
+                }
+            end
+            -- Safe defaults so positional/table callers without these fields don't error
+            Data.Title = Data.Title or "Notification"
+            Data.Description = Data.Description or ""
+            Data.Duration = tonumber(Data.Duration) or 3
+            Data.Icon = Data.Icon or "8622237899"
             local Items = { } do 
                 Items["Notification"] = Instances:Create("Frame", {
                     Parent = Library.NotifHolder.Instance,
@@ -3877,6 +3891,126 @@ local Library do
                 end
             end)
 
+            -- ===========================================
+            -- Compatibility / convenience methods
+            -- ===========================================
+            Window.Skins = Window.Skins or { }
+
+            -- AlternativePage: behaves like a normal Page
+            function Window:AlternativePage(PageData)
+                PageData = PageData or { }
+                return self:Page({
+                    Name = PageData.Name or PageData.name or "Page",
+                    Icon = PageData.Icon or PageData.icon,
+                    Columns = PageData.Columns or PageData.columns or 2
+                })
+            end
+
+            -- SkinsPage: a normal Page (skin selections are stored in Window.Skins)
+            function Window:SkinsPage(PageData)
+                PageData = PageData or { }
+                return self:Page({
+                    Name = PageData.Name or PageData.name or "Skins",
+                    Icon = PageData.Icon or PageData.icon,
+                    Columns = PageData.Columns or PageData.columns or 2
+                })
+            end
+
+            -- Watermark: lightweight text holder in the top-left of the screen
+            function Window:Watermark(WData)
+                WData = WData or { }
+
+                local WMItems = { }
+                WMItems["Watermark"] = Instances:Create("Frame", {
+                    Parent = Library.Holder.Instance,
+                    Name = "\0",
+                    BackgroundTransparency = 0.3499999940395355,
+                    AnchorPoint = Vector2New(0, 0),
+                    Position = UDim2New(0, 12, 0, 12),
+                    Size = UDim2New(0, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.XY,
+                    BorderSizePixel = 0,
+                    ZIndex = 50,
+                    BackgroundColor3 = FromRGB(27, 25, 29)
+                })  WMItems["Watermark"]:AddToTheme({BackgroundColor3 = "Background"})
+
+                Instances:Create("UICorner", {
+                    Parent = WMItems["Watermark"].Instance,
+                    Name = "\0",
+                    CornerRadius = UDimNew(0, 5)
+                })
+
+                Instances:Create("UIPadding", {
+                    Parent = WMItems["Watermark"].Instance,
+                    Name = "\0",
+                    PaddingTop = UDimNew(0, 6),
+                    PaddingBottom = UDimNew(0, 6),
+                    PaddingLeft = UDimNew(0, 8),
+                    PaddingRight = UDimNew(0, 8)
+                })
+
+                WMItems["Text"] = Instances:Create("TextLabel", {
+                    Parent = WMItems["Watermark"].Instance,
+                    Name = "\0",
+                    FontFace = Library.Font,
+                    TextColor3 = FromRGB(255, 255, 255),
+                    Text = WData.Name or WData.name or "",
+                    BackgroundTransparency = 1,
+                    AutomaticSize = Enum.AutomaticSize.XY,
+                    Size = UDim2New(0, 0, 0, 15),
+                    BorderSizePixel = 0,
+                    ZIndex = 51,
+                    TextSize = 14
+                })  WMItems["Text"]:AddToTheme({TextColor3 = "Text"})
+
+                local Watermark = { Items = WMItems }
+
+                function Watermark:SetText(Text)
+                    WMItems["Text"].Instance.Text = tostring(Text)
+                end
+
+                function Watermark:SetVisibility(Bool)
+                    WMItems["Watermark"].Instance.Visible = Bool and true or false
+                end
+
+                return Watermark
+            end
+
+            -- KeybindList: real rendered on-screen keybind list (delegates to Library.KeybindList)
+            function Window:KeybindList(KData)
+                KData = KData or { }
+                local Title = (type(KData) == "table" and (KData.Name or KData.name)) or KData or "Keybinds"
+                local list = Library:KeybindList(Title)
+
+                -- Register any keybinds that were created before the list existed.
+                -- Pending entries are the raw Keybind objects (see Toggle:Keybind / Sections.Keybind).
+                if Library.PendingKeybinds then
+                    for _, kb in ipairs(Library.PendingKeybinds) do
+                        pcall(function()
+                            local item = list:Add(kb.Name or "", kb.Value or "None")
+                            kb.KeyListItem = item
+                            if item then
+                                if kb.Value and kb.Value ~= "" then item:Set(kb.Name, kb.Value) end
+                                item:SetStatus(kb.Toggled or false)
+                                if kb.Toggle and kb.Toggle.Value ~= nil then
+                                    item:SetVisibility(kb.Toggle.Value == true)
+                                end
+                            end
+                        end)
+                    end
+                    Library.PendingKeybinds = nil
+                end
+
+                return list
+            end
+
+            -- CreateSettingsPage: no-arg convenience wrapper
+            function Window:CreateSettingsPage()
+                pcall(function()
+                    Library:CreateSettingsPage(self)
+                end)
+            end
+
             Window:SetCenter()
             task.wait()
             Window:SetOpen(true)
@@ -4118,6 +4252,17 @@ local Library do
             TableInsert(Page.Window.Pages, Page)
             
             return setmetatable(Page, {__index = Library.Pages})
+        end
+
+        -- SubPage: Vision has no nested pages, so resolve to a sibling top-level Page
+        Library.Pages.SubPage = function(self, SubData)
+            SubData = SubData or { }
+            local Win = self.Window or self
+            return Win:Page({
+                Name = SubData.Name or SubData.name or "SubPage",
+                Icon = SubData.Icon or SubData.icon,
+                Columns = SubData.Columns or SubData.columns or 2
+            })
         end
 
         Library.Pages.GlobalChat = function(self, Side)
@@ -5366,6 +5511,7 @@ local Library do
             local SettingsItem = { }
 
             function Toggle:Settings(Size)
+                Size = Size or 200
                 local Settings = {
                     IsOpen = false,
                     Name = "",
@@ -7045,6 +7191,10 @@ local Library do
         end
 
         Library.Sections.Label = function(self, Name)
+            -- Accept a table argument: Label({Name = "..."})
+            if type(Name) == "table" then
+                Name = Name.Name or Name.name or "Label"
+            end
             local Label = {
                 Window = self.Window,
                 Page = self.Page,
@@ -7337,6 +7487,11 @@ local Library do
                     pcall(function()
                         KeyListItem:Set(Data.Name, Keybind.Value)
                         KeyListItem:SetStatus(Keybind.Toggled)
+                        -- Show in the list once a real key is bound; hide if cleared
+                        if KeyListItem.SetVisibility then
+                            local hasKey = Keybind.Value and Keybind.Value ~= "" and Keybind.Value ~= "None"
+                            KeyListItem:SetVisibility(hasKey and true or false)
+                        end
                     end)
                 end
             end
