@@ -834,7 +834,8 @@ local Library do
             return
         end
         
-        Name = Name or StringFormat("connection_number_%s_%s", self.UnnamedConnections + 1, HttpService:GenerateGUID(false))
+        self.UnnamedConnections = self.UnnamedConnections + 1
+        Name = Name or StringFormat("connection_number_%s_%s", self.UnnamedConnections, HttpService:GenerateGUID(false))
 
         local NewConnection = {
             Event = Event,
@@ -843,16 +844,17 @@ local Library do
             Connection = nil
         }
 
-        Library:Thread(function()
-            local success, result = pcall(function()
-                return Event:Connect(Callback)
-            end)
-            if success then
-                NewConnection.Connection = result
-            else
-                warn("Failed to connect event: " .. tostring(result))
-            end
+        -- Connect synchronously so the connection is available immediately
+        -- (Disconnect, manual :Disconnect(), etc. relied on this being set right away).
+        local success, result = pcall(function()
+            return Event:Connect(Callback)
         end)
+
+        if success then
+            NewConnection.Connection = result
+        else
+            warn("Failed to connect event: " .. tostring(result))
+        end
 
         TableInsert(self.Connections, NewConnection)
         return NewConnection
@@ -861,7 +863,9 @@ local Library do
     Library.Disconnect = function(self, Name)
         for _, Connection in self.Connections do 
             if Connection.Name == Name then
-                Connection.Connection:Disconnect()
+                if Connection.Connection then
+                    Connection.Connection:Disconnect()
+                end
                 break
             end
         end
@@ -4299,7 +4303,7 @@ local Library do
                 Side = Data.Side or Data.side or 1,
 
                 Items = { },
-                IsActive = Data.DefaultOpen or false,
+                IsActive = (Data.DefaultOpen ~= false),
                 Elements = { }
             }
 
@@ -4942,7 +4946,7 @@ local Library do
                 Side = Data.Side or Data.side or 1,
 
                 Items = { },
-                IsActive = Data.DefaultOpen or false,
+                IsActive = (Data.DefaultOpen ~= false),
                 Elements = { }
             }
 
