@@ -1174,7 +1174,7 @@ local Library do
                     BackgroundColor3 = FromRGB(255, 255, 255)
                 })
                 
-                if not Data.Parent2.Instance:FindFirstChild("nig") then
+                if Data.Parent2 and Data.Parent2.Instance and not Data.Parent2.Instance:FindFirstChild("nig") then
                     Items["PaletteIcon"] = Instances:Create("ImageLabel", {
                         Parent = Data.Parent2.Instance,
                         ImageColor3 = FromRGB(141, 141, 150),
@@ -5818,6 +5818,36 @@ local Library do
                     Alpha = Data.Alpha or Data.alpha or false
                 }
 
+                -- Build a right-aligned container on the toggle row to hold the
+                -- colorpicker button (the Toggle scope has no "SubElements" frame of
+                -- its own, unlike Label). Created lazily so multiple colorpickers
+                -- on one toggle share the same holder.
+                if not Items["SubElements"] then
+                    Items["SubElements"] = Instances:Create("Frame", {
+                        Parent = Items["Toggle"].Instance,
+                        Name = "\0",
+                        BackgroundTransparency = 1,
+                        AnchorPoint = Vector2New(1, 0.5),
+                        Position = UDim2New(1, -18, 0.5, 0), -- leave room for settings icon
+                        Size = UDim2New(0, 0, 0, 20),
+                        AutomaticSize = Enum.AutomaticSize.X,
+                        BorderColor3 = FromRGB(0, 0, 0),
+                        BorderSizePixel = 0,
+                        ZIndex = 2,
+                        BackgroundColor3 = FromRGB(255, 255, 255)
+                    })
+
+                    Instances:Create("UIListLayout", {
+                        Parent = Items["SubElements"].Instance,
+                        Name = "\0",
+                        VerticalAlignment = Enum.VerticalAlignment.Center,
+                        HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                        FillDirection = Enum.FillDirection.Horizontal,
+                        Padding = UDimNew(0, 5),
+                        SortOrder = Enum.SortOrder.LayoutOrder
+                    })
+                end
+
                 local NewColorpicker, ColorpickerItems = Library:CreateColorpicker({
                     Parent = Items["SubElements"],
                     Page = Colorpicker.Page,
@@ -5825,6 +5855,7 @@ local Library do
                     Flag = Colorpicker.Flag,
                     Default = Colorpicker.Default,
                     Callback = Colorpicker.Callback,
+                    Parent2 = Items["SubElements"],
                     Alpha = Colorpicker.Alpha
                 })
 
