@@ -79,6 +79,7 @@ local Library do
             Directory = "vision",
             Configs = "vision/Configs",
             Assets = "vision/Assets",
+            Builds = "vision/Builds",
         },
 
         -- Ignore below
